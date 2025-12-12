@@ -25,11 +25,20 @@ Then, on your dev machine, run:
 docker run --name tunnel-app --env PORTS="80:3000,443:3001" --env PROXY_HOST="1.2.3.4" --env PROXY_SSH_PORT="22" --env PROXY_SSH_USER="${USER}" -v "${HOME}/.ssh/id_rsa:/ssh.key" -itd vitobotta/docker-tunnel:0.31.0 app
 ```
 
-There's an optional argument `APP_IP` which defaults to the IP of the Docker host but can be configured if requests should be forwarded to a specific IP.
-
 Here each couple in `PORTS` is a mapping between a port the app is listening to on your dev machine (C), and the port that will be used on the proxy server by the SSH connection to forward the requests to the app, so this second port must match port B specified for the proxy server. So you basically have a tunnel C->B->A, for example from port 80 of your app, to port 80 exposed on the Internet via an SSH tunnel using the port 3000. Hopefully it makes sense :)
 
 Note that it is assumed that the SSH connection will use key authentication, so you need to mount the SSH key you want to use as shown in the command above.
+
+
+### Optional environment variables for the app container
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `APP_IP` | (Auto-detected) | IP address to forward requests to. Defaults to the Docker host IP. |
+| `PREFER_IPV4` | `false` | Force IPv4 when resolving the Docker host IP. Useful when IPv6 causes tunnel issues. |
+| `PREFER_IPV6` | `false` | Force IPv6 when resolving the Docker host IP. |
+
+**Note:** `PREFER_IPV4` and `PREFER_IPV6` are mutually exclusive. Setting both to `true` will result in an error.
 
 
 ## A side note..

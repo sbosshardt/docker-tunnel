@@ -32,7 +32,20 @@ EOS
     ;;
 
   "app" )
-    DOCKER_HOST="$(getent hosts host.docker.internal | cut -d' ' -f1)"
+    # Validate IP version preference
+    if [ "${PREFER_IPV4:-false}" = "true" ] && [ "${PREFER_IPV6:-false}" = "true" ]; then
+      echo "Error: PREFER_IPV4 and PREFER_IPV6 cannot both be set to true" >&2
+      exit 1
+    fi
+
+    # Resolve Docker host IP based on preference
+    if [ "${PREFER_IPV4:-false}" = "true" ]; then
+      DOCKER_HOST="$(getent ahostsv4 host.docker.internal | head -1 | cut -d' ' -f1)"
+    elif [ "${PREFER_IPV6:-false}" = "true" ]; then
+      DOCKER_HOST="$(getent ahostsv6 host.docker.internal | head -1 | cut -d' ' -f1)"
+    else
+      DOCKER_HOST="$(getent hosts host.docker.internal | cut -d' ' -f1)"
+    fi
     APP_IP="${APP_IP:-$DOCKER_HOST}"
 
     if [ -z "${APP_IP}" ]; then
